@@ -87,17 +87,19 @@
 		(response-read-headers stream))))
       (socket-close socket))))
 
-(defun http-get (url)
+(defun http-get (url &key request-only)
   "returns a list of three elements: a response code as integer, an association list of headers returned from the server, and a stream from which the response can be read."
   (let* ((host (url-host url))
          (port (url-port url))
 	 (socket (socket-connect host port))
 	 (stream (socket-stream socket)))
     (write-standard-headers "GET" url host stream)
-    (list
-     (response-read-code stream)
-     (response-read-headers stream)
-     stream)))
+    (if request-only
+	socket
+	(list
+	 (response-read-code stream)
+	 (response-read-headers stream)
+	 stream))))
 
 ;; as extensible as mud
 (defun write-additional-headers (stream)
@@ -111,7 +113,8 @@
   (write-char (code-char 13) stream)
   (write-char (code-char 10) stream))
 
-(defun http-post (url content-type content &key headers (debug? *http-debug*))
+(defun http-post (url content-type content
+		  &key headers (debug? *http-debug*) request-only)
   "given a URL, a MIME content type, and the content as a character 
 stream, POST to the URL and return the list of three elements as 
 described for [http-get][]."
@@ -129,10 +132,20 @@ described for [http-get][]."
     (format stream "Content-Type: ~A~AContent-Length: ~D~A~A~A" 
 	    content-type +crlf+ (length content) +crlf+ +crlf+ content)
     (force-output stream)
+    (if request-only
+	socket
+	(list
+	 (response-read-code http-stream)
+	 (response-read-headers http-stream)
+	 http-stream))))
+
+(defun http-read-response (socket)
+  "returns a list of three elements: a response code as integer, an association list of headers returned from the server, and a stream from which the response can be read."
+  (let ((stream (socket-stream socket)))
     (list
-     (response-read-code http-stream)
-     (response-read-headers http-stream)
-     http-stream)))
+     (response-read-code stream)
+     (response-read-headers stream)
+     stream)))
 
 (defun http-resolve (url &key (http-method 'http-get)
 		     (signal-error? t) (verbose? nil))
