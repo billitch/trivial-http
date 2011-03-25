@@ -76,7 +76,8 @@
   "Returns a list of two elements: a response code as an integer and an association list of headers returned from the server."
   (let* ((host (url-host url))
          (port (url-port url))
-	 (socket (socket-connect host port))
+	 (socket #+sbcl(socket-connect host port :element-type :default)
+		 #-sbcl(socket-connect host port))
 	 (stream (socket-stream socket)))
     (unwind-protect
 	 (progn
@@ -91,7 +92,8 @@
   "returns a list of three elements: a response code as integer, an association list of headers returned from the server, and a stream from which the response can be read."
   (let* ((host (url-host url))
          (port (url-port url))
-	 (socket (socket-connect host port))
+	 (socket #+sbcl(socket-connect host port :element-type :default)
+		 #-sbcl(socket-connect host port))
 	 (stream (socket-stream socket)))
     (write-standard-headers "GET" url host stream)
     (if request-only
@@ -120,7 +122,8 @@ stream, POST to the URL and return the list of three elements as
 described for [http-get][]."
   (let* ((host (url-host url))
          (port (url-port url))
-	 (socket (socket-connect host port))
+	 (socket #+sbcl(socket-connect host port :element-type :default)
+		 #-sbcl(socket-connect host port))
 	 (http-stream (socket-stream socket))
 	 (stream http-stream))
     (when debug?
