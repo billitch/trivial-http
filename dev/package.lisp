@@ -9,6 +9,7 @@
    #:http-post 
    #:http-head
    #:http-download
+   #:http-read-response
    #:http-resolve
    #:escape-url-query
            

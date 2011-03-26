@@ -145,7 +145,7 @@ described for [http-get][]."
 (defun http-read-response (socket)
   "returns a list of three elements: a response code as integer, an association list of headers returned from the server, and a stream from which the response can be read."
   (let ((stream (socket-stream socket)))
-    (list
+    (values
      (response-read-code stream)
      (response-read-headers stream)
      stream)))
