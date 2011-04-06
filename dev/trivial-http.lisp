@@ -1,5 +1,7 @@
 (in-package #:trivial-http)
 
+(defvar *default-timeout* 30)
+
 ;;; ---------------------------------------------------------------------------
 ;;; constants
 ;;; ---------------------------------------------------------------------------
@@ -72,12 +74,13 @@
   (write-crlf stream)
   (force-output stream))
 
-(defun http-head (url)
+(defun http-head (url &key (timeout *default-timeout*))
   "Returns a list of two elements: a response code as an integer and an association list of headers returned from the server."
   (let* ((host (url-host url))
          (port (url-port url))
-	 (socket #+sbcl(socket-connect host port :element-type :default)
-		 #-sbcl(socket-connect host port))
+	 (socket #+sbcl(socket-connect host port :element-type :default
+				       :timeout timeout)
+		 #-sbcl(socket-connect host port :timeout timeout))
 	 (stream (socket-stream socket)))
     (unwind-protect
 	 (progn
@@ -88,12 +91,13 @@
 		(response-read-headers stream))))
       (socket-close socket))))
 
-(defun http-get (url &key request-only)
+(defun http-get (url &key (timeout *default-timeout*) request-only)
   "returns a list of three elements: a response code as integer, an association list of headers returned from the server, and a stream from which the response can be read."
   (let* ((host (url-host url))
          (port (url-port url))
-	 (socket #+sbcl(socket-connect host port :element-type :default)
-		 #-sbcl(socket-connect host port))
+	 (socket #+sbcl(socket-connect host port :element-type :default
+				       :timeout timeout)
+		 #-sbcl(socket-connect host port :timeout timeout))
 	 (stream (socket-stream socket)))
     (write-standard-headers "GET" url host stream)
     (if request-only
@@ -116,14 +120,16 @@
   (write-char (code-char 10) stream))
 
 (defun http-post (url content-type content
-		  &key headers (debug? *http-debug*) request-only)
+		  &key headers (debug? *http-debug*)
+		  (timeout *default-timeout*) request-only)
   "given a URL, a MIME content type, and the content as a character 
 stream, POST to the URL and return the list of three elements as 
 described for [http-get][]."
   (let* ((host (url-host url))
          (port (url-port url))
-	 (socket #+sbcl(socket-connect host port :element-type :default)
-		 #-sbcl(socket-connect host port))
+	 (socket #+sbcl(socket-connect host port :element-type :default
+				       :timeout timeout)
+		 #-sbcl(socket-connect host port :timeout timeout))
 	 (http-stream (socket-stream socket))
 	 (stream http-stream))
     (when debug?
