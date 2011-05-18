@@ -1,6 +1,7 @@
 (in-package #:trivial-http)
 
 (defvar *default-timeout* 30)
+(defvar *accept-charset* nil)
 
 ;;; ---------------------------------------------------------------------------
 ;;; constants
@@ -109,6 +110,10 @@
 
 ;; as extensible as mud
 (defun write-additional-headers (stream)
+  (when *accept-charset*
+    (write-crlf stream)
+    (write-string "Accept-Charset: " stream)
+    (write-string *accept-charset* stream))
   (when (and *proxy-password* *proxy-user*)
     (write-crlf stream)
     (write-string "Proxy-Authorization: Basic" stream)

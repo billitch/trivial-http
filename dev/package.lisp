@@ -5,6 +5,7 @@
   (:nicknames #:shttp)
   (:export
    #:*http-debug*
+   #:*accept-charset*
    #:*default-timeout*
    #:http-get 
    #:http-post 
